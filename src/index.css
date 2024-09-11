@@ -1,3 +1,8 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -10,4 +15,25 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* src/index.css */
+.cart-list {
+  @apply p-4;
+}
+
+.cart-item {
+  @apply bg-gray-100 p-4 mb-4 rounded-md shadow-md;
+}
+
+.cart-item h3 {
+  @apply text-lg font-semibold;
+}
+
+.cart-item p {
+  @apply text-gray-600;
+}
+
+.cart-item button {
+  @apply bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600;
 }
