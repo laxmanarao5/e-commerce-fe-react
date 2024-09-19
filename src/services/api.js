@@ -76,9 +76,13 @@ export const fetchProducts = async () => {
 export const addToCart = async (productId, quantity) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/cart/add`, {
-      productId,
-      quantity,
-    });
+      product_id:productId,
+      quantity:1,
+    },
+    {
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+    }});
     return response.data;
   } catch (error) {
     console.error("Add to cart failed:", error.response?.data);
@@ -110,4 +114,73 @@ export const getProducts = async () => {
       throw error.response?.data;
     }
   };
+
+  // Fetch Cart API
+export const getCartItems = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/cart/items`,{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+      console.log(response.data)
+    return response.data.data
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
+
+export const getOrders = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/products`,{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+    return response.data;
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
+export const updateCartItem = async (cartItemId, newQuantity) => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/cart/quantity`,{
+      cart_item_id: cartItemId, quantity: newQuantity
+    },{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+    return response.data;
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
+export const placeOrder = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/products`,{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+    return response.data;
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
+export const removeFromCart = async (cartId) => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/cart/remove`,{
+      cart_item_id : cartId
+    },{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+    return response.data;
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
+
 
