@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { signupSeller } from '../services/api'; // Placeholder for the API call
 import { useNavigate } from 'react-router-dom'
-
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const SellerSignUp = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -17,10 +18,29 @@ const SellerSignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await signupSeller(formData);
-      alert('User registration successful');
-      navigate('/')
+       await signupSeller(formData);
+      toast.success("Seller registration successful", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      setTimeout(()=>{
+        navigate('/')
+      },3000)
     } catch (error) {
+      toast.error(error.message, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       console.error('Error registering user:', error);
     }
   };
@@ -70,6 +90,7 @@ const SellerSignUp = () => {
             Sign Up
           </button>
         </form>
+        <ToastContainer />
       </div>
     </div>
   );

@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { signupUser } from '../services/api'; 
 import { useNavigate } from 'react-router-dom'
-
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const UserSignUp = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -18,8 +19,19 @@ const UserSignUp = () => {
     e.preventDefault();
     try {
       await signupUser(formData);
-      alert('User registration successful');
-      navigate('/')
+      toast.success("User registration successful", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      setTimeout(()=>{
+        navigate('/')
+      },3000)
+      
     } catch (error) {
       console.error('Error registering user:', error);
     }
@@ -74,6 +86,7 @@ const UserSignUp = () => {
           </button>
         </form>
       </div>
+      <ToastContainer />
     </div>
   );
 };

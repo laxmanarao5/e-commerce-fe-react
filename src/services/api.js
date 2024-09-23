@@ -54,7 +54,7 @@ export const signupSeller = async (data) => {
             'Content-Type': 'application/json'
           }
     });
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Seller Signup failed:", error.response?.data);
     throw error.response?.data;
@@ -102,8 +102,9 @@ export const fetchCart = async () => {
 };
 
 // Fetch Cart API
-export const getProducts = async () => {
+export const getProducts = async (queryObj) => {
     try {
+      console.log(queryObj,"queryobj")
       const response = await axios.get(`${API_BASE_URL}/products`,{
         headers:{
             Authorization: `Bearer ${localStorage.getItem('access_token')}`
@@ -132,7 +133,7 @@ export const getCartItems = async () => {
 
 export const getOrders = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/products`,{
+    const response = await axios.get(`${API_BASE_URL}/orders`,{
       headers:{
           Authorization: `Bearer ${localStorage.getItem('access_token')}`
       }});
@@ -158,10 +159,11 @@ export const updateCartItem = async (cartItemId, newQuantity) => {
 };
 export const placeOrder = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/products`,{
+    const response = await axios.post(`${API_BASE_URL}/order`,{},{
       headers:{
           Authorization: `Bearer ${localStorage.getItem('access_token')}`
       }});
+      console.log(response,"API")
     return response.data;
   } catch (error) {
     console.error("Fetching cart failed:", error.response?.data);
@@ -172,6 +174,21 @@ export const removeFromCart = async (cartId) => {
   try {
     const response = await axios.put(`${API_BASE_URL}/cart/remove`,{
       cart_item_id : cartId
+    },{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+    return response.data;
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
+
+export const cancelOrder = async (orderId) => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/order/cancel`,{
+      order_id : orderId
     },{
       headers:{
           Authorization: `Bearer ${localStorage.getItem('access_token')}`

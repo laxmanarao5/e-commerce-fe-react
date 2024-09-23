@@ -30,7 +30,7 @@ const Home = () => {
                 Sign Up as User
               </button>
             </Link>
-            <Link to="/signup/user">
+            <Link to="/signup/seller">
               <button className="w-full bg-yellow-500 text-white py-3 px-5 rounded-md font-medium hover:bg-yellow-600 transition duration-300 mb-4">
                 Sign Up as Seller
               </button>

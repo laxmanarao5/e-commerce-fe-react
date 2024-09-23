@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts, addToCart, getCartItems, updateCartItem, placeOrder , removeFromCart} from '../services/api'; // Updated API calls
+import { getProducts, addToCart, getCartItems, updateCartItem, placeOrder , removeFromCart,getOrders, cancelOrder} from '../services/api'; // Updated API calls
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
- 
+import { Range } from 'react-range';
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
+  const [categories,setCategories] =  useState([]);
   const [activeTab, setActiveTab] = useState('products');
   const [total, setTotal] = useState([])
+  const [orders, setOrders] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(''); // Selected category filter
+  const [priceRange, setPriceRange] = useState([0, 1000]); // Price range filter
 
   useEffect(() => {
     fetchProducts();
@@ -17,13 +21,15 @@ const Products = () => {
     if (activeTab === 'cart') {
       fetchCartItems();
     }
+    if( activeTab === 'orders'){
+      fetchOrders()
+    }
   }, [activeTab]);
 
   const fetchProducts = async () => {
     try {
       const response = await getProducts();
       setProducts(response);
-      console.log(response);
     } catch (error) {
       console.error('Error fetching products:', error);
     }
@@ -41,7 +47,15 @@ const Products = () => {
       console.error('Error fetching cart items:', error);
     }
   };
-
+  const fetchOrders = async () => {
+    try {
+      const response = await getOrders();
+      setOrders(response.data);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  };
+  
   const handleAddToCart = async (product) => {
     try {
       await addToCart(product.id);
@@ -114,6 +128,33 @@ const Products = () => {
       console.error('Error placing order:', error);
     }
   };
+  const handleCancelOrder = async ( orderId ) => {
+    await cancelOrder(orderId)
+    toast.success("Order cancelled successfully", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+    fetchOrders()
+
+  }
+  const handleCategoryChange = async ( e ) => {
+    setSelectedCategory(e.target.value);
+    const response = await getProducts({category: e.target.value, priceRange: priceRange });
+    setProducts(response);
+  }
+  const handlePriceRangeChange = async ( e ) => {
+    const value = e.target.value.split(',').map(Number);
+    setPriceRange(value);
+    const response = await getProducts({category: selectedCategory, priceRange: value });
+    setProducts(response);
+  }
+
+
 
   return (
     <div className="bg-gray-100 min-h-screen p-8">
@@ -142,6 +183,56 @@ const Products = () => {
       <ToastContainer />
       <div>
         {activeTab === 'products' && (
+          <div>
+          <div className="mb-4">
+            <select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              className="p-2 border rounded"
+            >
+              <option value="">All Categories</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Price Range Filter */}
+            <div className="mb-4">
+                <label className="block mb-2">Price Range: ${priceRange[0]} - ${priceRange[1]}</label>
+                <Range
+                  step={100}
+                  min={0}
+                  max={10000}
+                  values={priceRange}
+                  onChange={(values) => setPriceRange(values)}
+                  renderTrack={({ props, children }) => (
+                    <div
+                      {...props}
+                      style={{
+                        height: '6px',
+                        width: '50%',
+                        background: 'linear-gradient(to right, #ccc, #0f8, #ccc)',
+                      }}
+                    >
+                      {children}
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      style={{
+                        height: '20px',
+                        width: '20px',
+                        backgroundColor: '#0f8',
+                        borderRadius: '50%',
+                      }}
+                    />
+                  )}
+                />
+                </div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {products.map((product) => (
               <div key={product.id} className="bg-white p-6 rounded-lg shadow-md">
@@ -160,6 +251,7 @@ const Products = () => {
                 </button>
               </div>
             ))}
+          </div>
           </div>
         )}
 
@@ -209,6 +301,48 @@ const Products = () => {
                 >
                   Place Order
                 </button>
+              </div>
+            )}
+          </div>
+        )}
+        {activeTab === 'orders' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Orders</h2>
+            {orders.length === 0 ? (
+              <p>No orders found.</p>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((item) => (
+                  <div key={item.id} className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                    <div className="flex-1">
+                      <img
+                        // src={item.product.image}
+                        alt={item.product.name}
+                        className="w-24 h-24 object-cover mb-4 rounded"
+                      />
+                      <h3 className="text-xl font-semibold mb-2">{item.product.name}</h3>
+                      <p className="text-gray-700 mb-2"> Quantity: { item.quantity }</p>
+                      <p className="text-gray-700 mb-2"> Unit Price: { item.product.price }</p>
+                      <p className="text-gray-700 mb-2">Total Price: ${item.total_price}</p>
+                      
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                    {!item.cancelled_at && <button
+                        onClick={() => handleCancelOrder(item.id)}
+                        className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+                      >
+                        Cancel
+                      </button>
+                      }
+                      {item.cancelled_at && (
+                      <span className="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                                        Cancelled
+                      </span>
+                      )}
+                    </div> 
+                  </div>
+                ))}
               </div>
             )}
           </div>
