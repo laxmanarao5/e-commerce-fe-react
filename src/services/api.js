@@ -104,8 +104,16 @@ export const fetchCart = async () => {
 // Fetch Cart API
 export const getProducts = async (queryObj) => {
     try {
-      console.log(queryObj,"queryobj")
-      const response = await axios.get(`${API_BASE_URL}/products`,{
+      // Construct query params
+      const params = new URLSearchParams();
+      if (queryObj.category) {
+        params.append('category', queryObj.category);
+      }
+      if (queryObj.priceRange[0] !== 0 || queryObj.priceRange[1] !== 10000) {
+        params.append('min_price', queryObj.priceRange[0]);
+        params.append('max_price', queryObj.priceRange[1]);
+      }
+      const response = await axios.get(`${API_BASE_URL}/products${params.toString()?`?${params.toString()}`:''}`,{
         headers:{
             Authorization: `Bearer ${localStorage.getItem('access_token')}`
         }});
@@ -115,6 +123,19 @@ export const getProducts = async (queryObj) => {
       throw error.response?.data;
     }
   };
+  // Fetch Cart API
+export const getSellerProducts = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/products/seller`,{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+    return response.data;
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
 
   // Fetch Cart API
 export const getCartItems = async () => {
@@ -199,5 +220,45 @@ export const cancelOrder = async (orderId) => {
     throw error.response?.data;
   }
 };
+export const deleteSellerProduct = async ( productId ) => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/product/remove`,{
+      product_id : productId
+    },{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+    return response.data;
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
+export const addProduct = async ( reqObj ) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/product/add`,reqObj,{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+    return response;
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
 
+export const getCategories = async ( productId ) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/categories`,{
+      product_id : productId
+    },{
+      headers:{
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }});
+    return response.data;
+  } catch (error) {
+    console.error("Fetching cart failed:", error.response?.data);
+    throw error.response?.data;
+  }
+};
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts, addToCart, getCartItems, updateCartItem, placeOrder , removeFromCart,getOrders, cancelOrder} from '../services/api'; // Updated API calls
+import { getProducts, addToCart, getCartItems, updateCartItem, placeOrder , removeFromCart,getOrders, cancelOrder, getCategories} from '../services/api'; // Updated API calls
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Range } from 'react-range';
+import Slider from '@mui/material/Slider';
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
@@ -10,10 +10,24 @@ const Products = () => {
   const [activeTab, setActiveTab] = useState('products');
   const [total, setTotal] = useState([])
   const [orders, setOrders] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(''); // Selected category filter
+  const [selectedCategory, setSelectedCategory] = useState(null); // Selected category filter
   const [priceRange, setPriceRange] = useState([0, 1000]); // Price range filter
 
   useEffect(() => {
+    fetchCategories();
+    
+  }, []);
+  useEffect(() => {
+    console.log("tst","use effect")
+    const fetchProducts = async () => {
+      try {
+        console.log("ttttt", "fetch func")
+        const response = await getProducts({ category: null, priceRange:[null,null]});
+        setProducts(response);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
     fetchProducts();
   }, []);
 
@@ -26,14 +40,16 @@ const Products = () => {
     }
   }, [activeTab]);
 
-  const fetchProducts = async () => {
+  const fetchCategories = async () => {
     try {
-      const response = await getProducts();
-      setProducts(response);
+      const response = await getCategories();
+      setCategories(response);
     } catch (error) {
       console.error('Error fetching products:', error);
     }
   };
+
+  
 
   const fetchCartItems = async () => {
     try {
@@ -147,10 +163,9 @@ const Products = () => {
     const response = await getProducts({category: e.target.value, priceRange: priceRange });
     setProducts(response);
   }
-  const handlePriceRangeChange = async ( e ) => {
-    const value = e.target.value.split(',').map(Number);
-    setPriceRange(value);
-    const response = await getProducts({category: selectedCategory, priceRange: value });
+  const handlePriceRangeChange = async ( e,newValue ) => {
+    setPriceRange(newValue);
+    const response = await getProducts({category: selectedCategory, priceRange: newValue });
     setProducts(response);
   }
 
@@ -158,7 +173,7 @@ const Products = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen p-8">
-      <h1 className="text-4xl font-bold text-center mb-8">Product Management</h1>
+      {/* <h1 className="text-4xl font-bold text-center mb-8">Product Management</h1> */}
 
       <div className="flex justify-center space-x-4 mb-8">
         <button
@@ -192,7 +207,7 @@ const Products = () => {
             >
               <option value="">All Categories</option>
               {categories.map((category) => (
-                <option key={category.id} value={category.name}>
+                <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
               ))}
@@ -200,55 +215,40 @@ const Products = () => {
 
             {/* Price Range Filter */}
             <div className="mb-4">
-                <label className="block mb-2">Price Range: ${priceRange[0]} - ${priceRange[1]}</label>
-                <Range
-                  step={100}
-                  min={0}
-                  max={10000}
-                  values={priceRange}
-                  onChange={(values) => setPriceRange(values)}
-                  renderTrack={({ props, children }) => (
-                    <div
-                      {...props}
-                      style={{
-                        height: '6px',
-                        width: '50%',
-                        background: 'linear-gradient(to right, #ccc, #0f8, #ccc)',
-                      }}
-                    >
-                      {children}
-                    </div>
-                  )}
-                  renderThumb={({ props }) => (
-                    <div
-                      {...props}
-                      style={{
-                        height: '20px',
-                        width: '20px',
-                        backgroundColor: '#0f8',
-                        borderRadius: '50%',
-                      }}
-                    />
-                  )}
-                />
-                </div>
+      <label className="block mb-2">
+        Price Range: ${priceRange[0]} - ${priceRange[1]}
+      </label>
+      <Slider
+        value={priceRange}
+        onChange={handlePriceRangeChange}
+        valueLabelDisplay="auto"
+        min={0}
+        max={10000}
+        step={100}
+        sx={{ width: '50%' }}
+      />
+    </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {products.map((product) => (
               <div key={product.id} className="bg-white p-6 rounded-lg shadow-md">
                 <img
-                  src={product.image}
+                  src={product.images.length && product.images[0].image ? product.images[0].image:''}
                   alt={product.name}
                   className="w-full h-40 object-cover mb-4 rounded"
                 />
                 <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                <p className="text-gray-700 mb-4">${product.price}</p>
-                <button
+                <p className="text-gray-700 mb-4"><b>₹{product.price}</b> <del>{product.marked_price}</del> <div className='text-green-700'>{product.discount}% off</div></p>
+                {product.stock <=0 ? <span className="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+                                        Out of stock
+                      </span>  :<button
                   onClick={() => handleAddToCart(product)}
                   className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 w-full"
                 >
                   Add to Cart
                 </button>
+                  }
+                
               </div>
             ))}
           </div>
@@ -266,13 +266,13 @@ const Products = () => {
                   <div key={item.id} className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
                     <div className="flex-1">
                       <img
-                        // src={item.product.image}
+                        src={item.product.images.length && item.product.images[0].image ? item.product.images[0].image:''}
                         alt={item.product.name}
                         className="w-24 h-24 object-cover mb-4 rounded"
                       />
                       <h3 className="text-xl font-semibold mb-2">{item.product.name}</h3>
-                      <p className="text-gray-700 mb-2">Price: ${item.product.price}</p>
-                      <p className="text-gray-700 mb-2">Subtotal: ${item.quantity * item.product.price}</p>
+                      <p className="text-gray-700 mb-2">Price: ₹{item.product.price}</p>
+                      <p className="text-gray-700 mb-2">Subtotal: ₹{item.quantity * item.product.price}</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input
@@ -316,15 +316,15 @@ const Products = () => {
                   <div key={item.id} className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
                     <div className="flex-1">
                       <img
-                        // src={item.product.image}
+                        src={item.product.images.length && item.product.images[0].image ? item.product.images[0].image:''}
                         alt={item.product.name}
                         className="w-24 h-24 object-cover mb-4 rounded"
                       />
                       <h3 className="text-xl font-semibold mb-2">{item.product.name}</h3>
                       <p className="text-gray-700 mb-2"> Quantity: { item.quantity }</p>
-                      <p className="text-gray-700 mb-2"> Unit Price: { item.product.price }</p>
-                      <p className="text-gray-700 mb-2">Total Price: ${item.total_price}</p>
-                      
+                      <p className="text-gray-700 mb-2"> Unit Price: ₹{ item.product.price }</p>
+                      <p className="text-gray-700 mb-2">Total Price: ₹{item.total_price}</p>
+                      <p className="text-gray-700 mb-2">Order placed : {item.created_at}</p>
                     </div>
                     
                     <div className="flex items-center space-x-2">

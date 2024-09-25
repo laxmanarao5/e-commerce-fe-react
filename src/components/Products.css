@@ -1,0 +1,17 @@
+.horizontal-slider {
+    width: 50%;
+  }
+  
+  .track {
+    background: #ccc;
+    height: 6px;
+  }
+  
+  .handle {
+    height: 20px;
+    width: 20px;
+    background-color: #0f8;
+    border-radius: 50%;
+    border: 2px solid #0f8;
+  }
+  
